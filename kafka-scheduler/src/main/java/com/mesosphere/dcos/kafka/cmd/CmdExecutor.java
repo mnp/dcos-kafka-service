@@ -32,8 +32,9 @@ public class CmdExecutor {
     this.zkPath = configuration.getFullKafkaZookeeperPath();
   }
 
-  public JSONObject createTopic(String name, int partitionCount, int replicationFactor) throws Exception {
+  public JSONObject createTopic(String name, int partitionCount, int replicationFactor, List<String> configs) throws Exception {
     // e.g. ./kafka-topics.sh --create --zookeeper master.mesos:2181/kafka-0 --topic topic0 --partitions 3 --replication-factor 3
+    //                        --config k1=v1 --config k2=v2
 
     List<String> cmd = new ArrayList<String>();
     cmd.add(binPath + "kafka-topics.sh");
@@ -46,6 +47,11 @@ public class CmdExecutor {
     cmd.add(Integer.toString(partitionCount));
     cmd.add("--replication-factor");
     cmd.add(Integer.toString(replicationFactor));
+
+    for (String conf : configs) {
+        cmd.add("--config");
+        cmd.add(conf);
+    }
 
     return runCmd(cmd);
   }

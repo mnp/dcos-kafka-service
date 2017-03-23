@@ -40,12 +40,15 @@ public class TopicController {
   public Response createTopic(
       @QueryParam("name") String name,
       @QueryParam("partitions") String partitionCount,
-      @QueryParam("replication") String replicationFactor) {
+      @QueryParam("replication") String replicationFactor,
+      @QueryParam("configs") String configKVCommas) {
 
     try {
       int partCount = Integer.parseInt(partitionCount);
       int replFactor = Integer.parseInt(replicationFactor);
-      JSONObject result = cmdExecutor.createTopic(name, partCount, replFactor);
+      List<String> configs = Arrays.asList(configKVCommas.split(","));
+
+      JSONObject result = cmdExecutor.createTopic(name, partCount, replFactor, configs);
       return Response.ok(result.toString(), MediaType.APPLICATION_JSON).build();
     } catch (Exception ex) {
       log.error("Failed to create topic: " + name + " with exception: " + ex);

@@ -24,14 +24,14 @@ func main() {
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
-	
+
 	// Adding dcos-common cli section manually
 	cli.HandleCommonFlags(app, modName, fmt.Sprintf("%s DC/OS CLI Module", strings.Title(modName)))
 	cli.HandleConfigSection(app)
 	cli.HandleConnectionSection(app, []string{"address", "dns"})
 	handleKafkaPlanSection(app)
 	cli.HandleStateSection(app)
-  
+
 	// Keep this comment as a placeholder reminder
 	//cli.HandleCommonArgs(
 	//	app,
@@ -41,7 +41,6 @@ func main() {
 
 	handleBrokerSection(app)
 	handleTopicSection(app)
-	
 
 	// Omit modname:
 	kingpin.MustParse(app.Parse(os.Args[2:]))
@@ -81,7 +80,7 @@ func (cmd *PlanHandler) RunInterrupt(c *kingpin.ParseContext) error {
 
 func (cmd *PlanHandler) RunForce(c *kingpin.ParseContext) error {
 	query := url.Values{}
-	query.Set("plan","deploy")
+	query.Set("plan", "deploy")
 	query.Set("phase", cmd.PhaseId)
 	query.Set("step", cmd.StepId)
 	cli.PrintJSON(cli.HTTPPostQuery("v1/plans/deploy/forceComplete", query.Encode()))
@@ -89,7 +88,7 @@ func (cmd *PlanHandler) RunForce(c *kingpin.ParseContext) error {
 }
 func (cmd *PlanHandler) RunRestart(c *kingpin.ParseContext) error {
 	query := url.Values{}
-	query.Set("plan","deploy")
+	query.Set("plan", "deploy")
 	query.Set("phase", cmd.PhaseId)
 	query.Set("step", cmd.StepId)
 	cli.PrintJSON(cli.HTTPPostQuery("v1/plans/deploy/restart", query.Encode()))
@@ -99,7 +98,7 @@ func (cmd *PlanHandler) RunRestart(c *kingpin.ParseContext) error {
 func handleKafkaPlanSection(app *kingpin.Application) {
 	// plan <active, continue, force, interrupt, restart, show>
 	cmd := &PlanHandler{}
-	
+
 	app.Command("plan", "Display full plan").Action(cmd.RunShow)
 	app.Command("continue", "Continue a currently Waiting operation").Action(cmd.RunContinue)
 	app.Command("interrupt", "Interrupt a currently Pending operation").Action(cmd.RunInterrupt)
@@ -113,10 +112,10 @@ func handleKafkaPlanSection(app *kingpin.Application) {
 	restart.Arg("step", "UUID of Step to be restarted").Required().StringVar(&cmd.StepId)
 }
 
-
 type BrokerHandler struct {
 	broker string
 }
+
 func (cmd *BrokerHandler) runList(c *kingpin.ParseContext) error {
 	cli.PrintJSON(cli.HTTPGet("v1/brokers"))
 	return nil
@@ -151,20 +150,22 @@ func handleBrokerSection(app *kingpin.Application) {
 	restart.Arg("broker_id", "The broker to restart").StringVar(&cmd.broker)
 }
 
-
 type TopicHandler struct {
-	topic string // shared by many commands
-	createPartitions int
-	createReplication int
-	offsetsTime string
-	partitionCount int
+	topic               string // shared by many commands
+	createPartitions    int
+	createReplication   int
+	offsetsTime         string
+	partitionCount      int
 	produceMessageCount int
+	configurations      string
 }
+
 func (cmd *TopicHandler) runCreate(c *kingpin.ParseContext) error {
 	query := url.Values{}
 	query.Set("name", cmd.topic)
 	query.Set("partitions", strconv.FormatInt(int64(cmd.createPartitions), 10))
 	query.Set("replication", strconv.FormatInt(int64(cmd.createReplication), 10))
+	query.Set("configurations", cmd.configurations)
 	cli.PrintJSON(cli.HTTPPostQuery("v1/topics", query.Encode()))
 	return nil
 }
@@ -183,7 +184,7 @@ func (cmd *TopicHandler) runList(c *kingpin.ParseContext) error {
 func (cmd *TopicHandler) runOffsets(c *kingpin.ParseContext) error {
 	var timeVal int64
 	var err error
-	switch (cmd.offsetsTime) {
+	switch cmd.offsetsTime {
 	case "first":
 		timeVal = -2
 	case "last":
@@ -234,6 +235,7 @@ func handleTopicSection(app *kingpin.Application) {
 	create.Arg("topic", "The topic to create").StringVar(&cmd.topic)
 	create.Flag("partitions", "Number of partitions").Short('p').Default("1").OverrideDefaultFromEnvar("KAFKA_DEFAULT_PARTITION_COUNT").IntVar(&cmd.createPartitions)
 	create.Flag("replication", "Replication factor").Short('r').Default("3").OverrideDefaultFromEnvar("KAFKA_DEFAULT_REPLICATION_FACTOR").IntVar(&cmd.createReplication)
+	create.Flag("configurations", "Topic-level configurations k1=v1,k2=v2,...").OverrideDefaultFromEnvar("KAFKA_DEFAULT_CONFIGURATIONS").StringVar(&cmd.configurations)
 
 	delete := topic.Command(
 		"delete",
