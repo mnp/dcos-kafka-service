@@ -165,7 +165,9 @@ func (cmd *TopicHandler) runCreate(c *kingpin.ParseContext) error {
 	query.Set("name", cmd.topic)
 	query.Set("partitions", strconv.FormatInt(int64(cmd.createPartitions), 10))
 	query.Set("replication", strconv.FormatInt(int64(cmd.createReplication), 10))
-	query.Set("configurations", cmd.configurations)
+	if len(cmd.configurations) > 0 {
+		query.Set("configurations", cmd.configurations)
+	}
 	cli.PrintJSON(cli.HTTPPostQuery("v1/topics", query.Encode()))
 	return nil
 }
