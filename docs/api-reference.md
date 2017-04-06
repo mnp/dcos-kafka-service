@@ -271,6 +271,21 @@ These operations mirror what is available with `bin/kafka-topics.sh`.
         "message": "Output: Created topic "topic1".n"
     }
     
+## Per-topic Configuration Overrides
+
+There is an optional `--configs` parameter to topic creation which may be set to a comma-delimited list of `key=value` pairs, overriding that topic's default configuration options as [described in the Kafka documentation][14].  Per-topic configurations can be seen in the `bin/kafka-topics.sh --describe` command.
+
+    $ dcos kafka topic create topic1 --partitions=3 --replication=3 --configs=delete.retention.ms=1111111,compression.type=lz4
+    {
+      "message": "Output: Created topic \"topic1\".\n"
+    }
+
+    $ curl -X POST -H "Authorization: token=$AUTH_TOKEN" "$DCOS_URI/v1/topics?configs=delete.retention.ms=8888888&name=topic3&partitions=1&replication=1'
+    {
+      "message":"Output: Created topic \"topic3\".\n"
+    }
+
+**TODO**: This also be supported in `describe` for output, as well as `alter topic` commands.
 
 ## View Topic Offsets
 
@@ -669,4 +684,5 @@ These operations are only applicable when `PHASE_STRATEGY` is set to `STAGE`, th
     $ curl -H "Authorization: token=$AUTH_TOKEN" "$DCOS_URI/service/kafka/v1/plan/interrupt"
     
 
+ [14]: https://kafka.apache.org/documentation/#topic-config
  [15]: https://cwiki.apache.org/confluence/display/KAFKA/System+Tools#SystemTools-GetOffsetShell
