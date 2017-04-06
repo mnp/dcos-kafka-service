@@ -46,7 +46,16 @@ public class TopicController {
     try {
       int partCount = Integer.parseInt(partitionCount);
       int replFactor = Integer.parseInt(replicationFactor);
-      List<String> configs = Arrays.asList(configKVCommas.split(","));
+      List<String> configs = null;
+
+      if (configKVCommas != null && configKVCommas.length() > 0) {
+          log.info("Creating topic " + name + " with configs " + configKVCommas);
+          configs = Arrays.asList(configKVCommas.split(","));
+      }
+      else {
+          log.info("Creating topic " + name + " with no configs");
+          configs = Arrays.asList();
+      }
 
       JSONObject result = cmdExecutor.createTopic(name, partCount, replFactor, configs);
       return Response.ok(result.toString(), MediaType.APPLICATION_JSON).build();

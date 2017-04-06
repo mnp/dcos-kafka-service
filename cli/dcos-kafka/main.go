@@ -157,7 +157,7 @@ type TopicHandler struct {
 	offsetsTime         string
 	partitionCount      int
 	produceMessageCount int
-	configurations      string
+	configs             string
 }
 
 func (cmd *TopicHandler) runCreate(c *kingpin.ParseContext) error {
@@ -165,8 +165,8 @@ func (cmd *TopicHandler) runCreate(c *kingpin.ParseContext) error {
 	query.Set("name", cmd.topic)
 	query.Set("partitions", strconv.FormatInt(int64(cmd.createPartitions), 10))
 	query.Set("replication", strconv.FormatInt(int64(cmd.createReplication), 10))
-	if len(cmd.configurations) > 0 {
-		query.Set("configurations", cmd.configurations)
+	if len(cmd.configs) > 0 {
+		query.Set("configs", cmd.configs)
 	}
 	cli.PrintJSON(cli.HTTPPostQuery("v1/topics", query.Encode()))
 	return nil
@@ -237,7 +237,7 @@ func handleTopicSection(app *kingpin.Application) {
 	create.Arg("topic", "The topic to create").StringVar(&cmd.topic)
 	create.Flag("partitions", "Number of partitions").Short('p').Default("1").OverrideDefaultFromEnvar("KAFKA_DEFAULT_PARTITION_COUNT").IntVar(&cmd.createPartitions)
 	create.Flag("replication", "Replication factor").Short('r').Default("3").OverrideDefaultFromEnvar("KAFKA_DEFAULT_REPLICATION_FACTOR").IntVar(&cmd.createReplication)
-	create.Flag("configurations", "Topic-level configurations k1=v1,k2=v2,...").OverrideDefaultFromEnvar("KAFKA_DEFAULT_CONFIGURATIONS").StringVar(&cmd.configurations)
+	create.Flag("configs", "Topic-level configs k1=v1,k2=v2,...").OverrideDefaultFromEnvar("KAFKA_DEFAULT_CONFIGS").StringVar(&cmd.configs)
 
 	delete := topic.Command(
 		"delete",
